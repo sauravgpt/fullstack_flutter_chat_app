@@ -2,6 +2,7 @@ import 'package:chat/src/models/user.dart';
 import 'package:chat/src/services/user/user_service_impl.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:rethinkdb_dart/rethinkdb_dart.dart';
+
 import 'helpers.dart';
 
 void main() {
@@ -11,12 +12,12 @@ void main() {
 
   setUp(() async {
     connection = await r.connect(host: "127.0.0.1", port: 28015);
-    await createDB(r, connection);
+    await createDb(r, connection);
     sut = UserService(r, connection);
   });
 
   tearDown(() async {
-    await cleanDB(r, connection);
+    await cleanDb(r, connection);
   });
 
   test('creates a new user document in database', () async {
@@ -24,32 +25,24 @@ void main() {
       username: 'test',
       photoUrl: 'url',
       active: true,
-      lastSeen: DateTime.now(),
+      lastseen: DateTime.now(),
     );
-
     final userWithId = await sut.connect(user);
     expect(userWithId.id, isNotEmpty);
   });
 
   test('get online users', () async {
-    final user1 = User(
+    final user = User(
       username: 'test',
       photoUrl: 'url',
       active: true,
-      lastSeen: DateTime.now(),
+      lastseen: DateTime.now(),
     );
-
-    final user2 = User(
-      username: 'test',
-      photoUrl: 'url',
-      active: true,
-      lastSeen: DateTime.now(),
-    );
-
-    await sut.connect(user1);
-    await sut.connect(user2);
-
+    //arrange
+    await sut.connect(user);
+    //act
     final users = await sut.online();
-    expect(users.length, 2);
+    //assert
+    expect(users.length, 1);
   });
 }

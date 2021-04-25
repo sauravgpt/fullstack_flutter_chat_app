@@ -1,14 +1,13 @@
 import 'package:chat/src/services/encryption/encryption_contract.dart';
-import 'package:chat/src/services/encryption/encryption_service_impl.dart';
+import 'package:chat/src/services/encryption/encryption_service.dart';
 import 'package:encrypt/encrypt.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-void main() {
+main() {
   IEncryption sut;
 
   setUp(() {
     final encrypter = Encrypter(AES(Key.fromLength(32)));
-
     sut = EncryptionService(encrypter);
   });
 
@@ -26,6 +25,7 @@ void main() {
     final text = 'this is a message';
     final encrypted = sut.encrypt(text);
     final decrypted = sut.decrypt(encrypted);
+
     expect(decrypted, text);
   });
 }

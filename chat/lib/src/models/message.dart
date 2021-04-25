@@ -19,16 +19,15 @@ class Message {
         'from': this.from,
         'to': this.to,
         'timestamp': this.timestamp,
-        'contents': this.contents,
+        'contents': this.contents
       };
 
   factory Message.fromJson(Map<String, dynamic> json) {
-    final message = Message(
-      from: json['from'],
-      to: json['to'],
-      timestamp: json['timestamp'],
-      contents: json['contents'],
-    );
+    var message = Message(
+        from: json['from'],
+        to: json['to'],
+        contents: json['contents'],
+        timestamp: json['timestamp']);
 
     message._id = json['id'];
     return message;

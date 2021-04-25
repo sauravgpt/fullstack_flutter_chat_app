@@ -10,7 +10,7 @@ class EncryptionService implements IEncryption {
   @override
   String decrypt(String encryptedText) {
     final encrypted = Encrypted.fromBase64(encryptedText);
-    return _encrypter.decrypt(encrypted, iv: _iv);
+    return _encrypter.decrypt(encrypted, iv: this._iv);
   }
 
   @override

@@ -6,20 +6,19 @@ class User {
   String photoUrl;
   String _id;
   bool active;
-  DateTime lastSeen;
+  DateTime lastseen;
 
-  User({
-    @required this.username,
-    @required this.photoUrl,
-    @required this.active,
-    @required this.lastSeen,
-  });
+  User(
+      {@required this.username,
+      @required this.photoUrl,
+      @required this.active,
+      @required this.lastseen});
 
   toJson() => {
         'username': username,
         'photo_url': photoUrl,
         'active': active,
-        'last_seen': lastSeen,
+        'last_seen': lastseen
       };
 
   factory User.fromJson(Map<String, dynamic> json) {
@@ -27,7 +26,7 @@ class User {
         username: json['username'],
         photoUrl: json['photo_url'],
         active: json['active'],
-        lastSeen: json['last_seen']);
+        lastseen: json['last_seen']);
     user._id = json['id'];
     return user;
   }

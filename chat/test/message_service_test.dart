@@ -1,6 +1,6 @@
 import 'package:chat/src/models/message.dart';
 import 'package:chat/src/models/user.dart';
-import 'package:chat/src/services/encryption/encryption_service_impl.dart';
+import 'package:chat/src/services/encryption/encryption_service.dart';
 import 'package:chat/src/services/message/message_service_impl.dart';
 import 'package:encrypt/encrypt.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -15,28 +15,26 @@ void main() {
 
   setUp(() async {
     connection = await r.connect(host: '127.0.0.1', port: 28015);
-    await createDB(r, connection);
-    final encryptionService =
-        EncryptionService(Encrypter(AES(Key.fromLength(32))));
-
-    sut = MessageService(r, connection, encryptionService);
+    final encryption = EncryptionService(Encrypter(AES(Key.fromLength(32))));
+    await createDb(r, connection);
+    sut = MessageService(r, connection, encryption);
   });
 
   tearDown(() async {
     sut.dispose();
-    await cleanDB(r, connection);
+    await cleanDb(r, connection);
   });
 
   final user = User.fromJson({
     'id': '1234',
     'active': true,
-    'last_seen': DateTime.now(),
+    'lastSeen': DateTime.now(),
   });
 
   final user2 = User.fromJson({
-    'id': '4321',
+    'id': '1111',
     'active': true,
-    'last_seen': DateTime.now(),
+    'lastSeen': DateTime.now(),
   });
 
   test('sent message successfully', () async {
@@ -48,7 +46,6 @@ void main() {
     );
 
     final res = await sut.send(message);
-
     expect(res, true);
   });
 

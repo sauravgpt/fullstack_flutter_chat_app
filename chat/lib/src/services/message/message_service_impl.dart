@@ -1,25 +1,25 @@
 import 'dart:async';
-import 'package:chat/src/services/encryption/encryption_contract.dart';
 
-import '../../models/user.dart';
-import '../../models/message.dart';
-import './message_service_contract.dart';
-import 'package:flutter/foundation.dart';
+import 'package:chat/src/models/message.dart';
+import 'package:chat/src/models/user.dart';
+import 'package:chat/src/services/encryption/encryption_contract.dart';
+import 'package:chat/src/services/message/message_service_contract.dart';
 import 'package:rethinkdb_dart/rethinkdb_dart.dart';
 
 class MessageService implements IMessageService {
   final Connection _connection;
   final Rethinkdb r;
   final IEncryption _encryption;
+
   final _controller = StreamController<Message>.broadcast();
   StreamSubscription _changefeed;
 
   MessageService(this.r, this._connection, this._encryption);
 
   @override
-  dispose() async {
-    await _controller?.close();
+  dispose() {
     _changefeed?.cancel();
+    _controller?.close();
   }
 
   @override
@@ -33,14 +33,13 @@ class MessageService implements IMessageService {
     var data = message.toJson();
     data['contents'] = _encryption.encrypt(message.contents);
     Map record = await r.table('messages').insert(data).run(_connection);
-
     return record['inserted'] == 1;
   }
 
-  _startReceivingMessages(User activeUser) {
+  _startReceivingMessages(User user) {
     _changefeed = r
         .table('messages')
-        .filter({'to': activeUser.id})
+        .filter({'to': user.id})
         .changes({'include_initial': true})
         .run(_connection)
         .asStream()
@@ -52,13 +51,10 @@ class MessageService implements IMessageService {
 
                 final message = _messageFromFeed(feedData);
                 _controller.sink.add(message);
-
-                _removeDeliveredMessage(message);
+                _removeDeliverredMessage(message);
               })
-              .catchError((err) => {
-                    debugPrint(err),
-                  })
-              .onError((error, stackTrace) => debugPrint(error));
+              .catchError((err) => print(err))
+              .onError((error, stackTrace) => print(error));
         });
   }
 
@@ -68,7 +64,7 @@ class MessageService implements IMessageService {
     return Message.fromJson(data);
   }
 
-  _removeDeliveredMessage(Message message) {
+  _removeDeliverredMessage(Message message) {
     r
         .table('messages')
         .get(message.id)
