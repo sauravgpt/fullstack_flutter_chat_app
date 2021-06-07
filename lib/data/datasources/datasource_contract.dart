@@ -1,7 +1,7 @@
 import 'package:fullstack_chat_app/models/chat.dart';
 import 'package:fullstack_chat_app/models/local_message.dart';
 
-abstract class IDataSource {
+abstract class IDatasource {
   Future<void> addChat(Chat chat);
   Future<void> addMessage(LocalMessage message);
   Future<Chat> findChat(String chatId);

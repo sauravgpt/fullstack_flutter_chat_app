@@ -1,6 +1,6 @@
 import 'package:chat/chat.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:fullstack_chat_app/data/datasource/sqflite_datasource.dart';
+import 'package:fullstack_chat_app/data/datasources/sqflite_datasource.dart';
 import 'package:fullstack_chat_app/models/chat.dart';
 import 'package:fullstack_chat_app/models/local_message.dart';
 import 'package:mockito/mockito.dart';
@@ -11,14 +11,14 @@ class MockSqfliteDatabase extends Mock implements Database {}
 class MockBatch extends Mock implements Batch {}
 
 void main() {
-  SQFliteDataSource sut;
+  SqfliteDatasource sut;
   MockSqfliteDatabase database;
   MockBatch batch;
 
   setUp(() {
     database = MockSqfliteDatabase();
     batch = MockBatch();
-    sut = SQFliteDataSource(database);
+    sut = SqfliteDatasource(database);
   });
 
   final message = Message.fromJson({
@@ -46,11 +46,7 @@ void main() {
 
   test('should perform insert of message to the database', () async {
     //arrange
-    final localMessage = LocalMessage(
-      chatId: '1234',
-      message: message,
-      receipt: ReceiptStatus.sent,
-    );
+    final localMessage = LocalMessage('1234', message, ReceiptStatus.sent);
 
     when(database.insert('messages', localMessage.toMap(),
             conflictAlgorithm: ConflictAlgorithm.replace))
@@ -98,11 +94,7 @@ void main() {
 
   test('should perform database update on messages', () async {
     //arrange
-    final localMessage = LocalMessage(
-      chatId: '1234',
-      message: message,
-      receipt: ReceiptStatus.sent,
-    );
+    final localMessage = LocalMessage('1234', message, ReceiptStatus.sent);
     when(database.update('messages', localMessage.toMap(),
             where: anyNamed('where'), whereArgs: anyNamed('whereArgs')))
         .thenAnswer((_) async => 1);

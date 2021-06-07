@@ -6,13 +6,8 @@ class Chat {
   List<LocalMessage> messages = [];
   LocalMessage mostRecent;
 
-  Chat(
-    id, {
-    this.messages,
-    this.mostRecent,
-  });
+  Chat(this.id, {this.messages, this.mostRecent});
 
   toMap() => {'id': id};
-
   factory Chat.fromMap(Map<String, dynamic> json) => Chat(json['id']);
 }

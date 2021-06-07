@@ -1,29 +1,23 @@
-import 'package:fullstack_chat_app/data/datasource/data_source_contract.dart';
-import 'package:fullstack_chat_app/models/local_message.dart';
+import 'package:fullstack_chat_app/data/datasources/datasource_contract.dart';
 import 'package:fullstack_chat_app/models/chat.dart';
+import 'package:fullstack_chat_app/models/local_message.dart';
 import 'package:sqflite/sqflite.dart';
-import 'package:sqflite/sqlite_api.dart';
 
-class SQFliteDataSource implements IDataSource {
+class SqfliteDatasource implements IDatasource {
   final Database _db;
 
-  const SQFliteDataSource(this._db);
+  const SqfliteDatasource(this._db);
+
   @override
   Future<void> addChat(Chat chat) async {
-    await _db.insert(
-      'chats',
-      chat.toMap(),
-      conflictAlgorithm: ConflictAlgorithm.replace,
-    );
+    await _db.insert('chats', chat.toMap(),
+        conflictAlgorithm: ConflictAlgorithm.replace);
   }
 
   @override
   Future<void> addMessage(LocalMessage message) async {
-    await _db.insert(
-      'messages',
-      message.toMap(),
-      conflictAlgorithm: ConflictAlgorithm.replace,
-    );
+    await _db.insert('messages', message.toMap(),
+        conflictAlgorithm: ConflictAlgorithm.replace);
   }
 
   @override
@@ -39,22 +33,24 @@ class SQFliteDataSource implements IDataSource {
     return _db.transaction((txn) async {
       final chatsWithLatestMessage =
           await txn.rawQuery(''' SELECT messages.* FROM
-          (SELECT
-            chat_id, MAX(created_at) AS created_at
-            FROM messages
-            GROUP BY chat_id
-          ) AS latest_messages
-          INNER JOIN messages
-          ON messages.chat_id = latest_messages.chat_id
-          AND messages.created_at = latest_messages.created_at
+      (SELECT 
+        chat_id, MAX(created_at) AS created_at
+        FROM messages
+        GROUP BY chat_id
+      ) AS lastest_messages
+      INNER JOIN messages
+      ON messages.chat_id = lastest_messages.chat_id
+      AND messages.created_at = latest_messages.created_at
       ''');
 
+      if (chatsWithLatestMessage.isEmpty) return [];
+
       final chatsWithUnreadMessages =
-          await txn.rawQuery(''' SELECT chat_id, count(*) as unread
-          FROM messages
-          WHERE receipt = ?
-          GROUP BY chat_id
-      ''', ['delivered']);
+          await txn.rawQuery('''SELECT chat_id, count(*) as unread 
+      FROM messages
+      WHERE receipt = ?
+      GROUP BY chat_id
+      ''', ['deliverred']);
 
       return chatsWithLatestMessage.map<Chat>((row) {
         final int unread = int.tryParse(chatsWithUnreadMessages.firstWhere(
@@ -64,7 +60,6 @@ class SQFliteDataSource implements IDataSource {
         final chat = Chat.fromMap(row);
         chat.unread = unread;
         chat.mostRecent = LocalMessage.fromMap(row);
-
         return chat;
       }).toList();
     });
@@ -79,9 +74,11 @@ class SQFliteDataSource implements IDataSource {
         whereArgs: [chatId],
       );
 
+      if (listOfChatMaps.isEmpty) return null;
+
       final unread = Sqflite.firstIntValue(await txn.rawQuery(
           'SELECT COUNT(*) FROM MESSAGES WHERE chat_id = ? AND receipt = ?',
-          [chatId, 'delivered']));
+          [chatId, 'deliverred']));
 
       final mostRecentMessage = await txn.query('messages',
           where: 'chat_id = ?',
